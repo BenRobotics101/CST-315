@@ -55,19 +55,32 @@ void put(int a)
 volatile int counter;
 // note, all global variables that the threads will use need "volatile"!
 
-void* produce(void* inputItem)
+
+int produce()
+{
+    return counter++;
+}
+
+
+void* producer(void* inputItem)
 {
     printf("Producer thread started\n");
     // printf("Hello!\n"); // NOTE, if there is no \n  IT WILL NOT FLUSH to console, making it invisible. >    return NULL;
-    int counter = 0;
     while(1)
     {
-        put(counter++);
+        int i = produce();
+        put(i);
         msleep(250); // 250 milliseconds
     }
 }
 
-void* consume(void* inputItem)
+void consume(int c)
+{
+    // delete line below....
+    int length = 0;
+    printf("Your number is: %d. Length of queue: %d\n",c, length);
+}
+void* consumer(void* inputItem)
 {
     printf("Consumer portion started\n");
     msleep(800);
@@ -79,9 +92,7 @@ void* consume(void* inputItem)
        //  }
        msleep(250);
        int c = get();
-       // delete line below....
-       int length = 0;
-       printf("Your number is: %d. Length of queue: %d\n",c, length);
+       consume(c);
     }
      return NULL;
 }
@@ -95,7 +106,7 @@ int main()
 
     const char* c = "Producer Thread";
 
-    pthread_create(&id, NULL, produce, (void*)c);
+    pthread_create(&id, NULL, producer, (void*)c);
 
-    consume((void*)&a);
+    consumer((void*)&a);
 }
