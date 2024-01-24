@@ -5,6 +5,13 @@
 #include <time.h>
 #include <errno.h>
 
+#define SIZE  5
+
+int buffer[SIZE];
+int start;
+int end;
+int length = 0;
+
 /* msleep(): Sleep for the requested number of milliseconds. 
 https://stackoverflow.com/questions/1157209/is-there-an-alternative-sleep-function-in-c-to-milliseconds
 */
@@ -30,17 +37,30 @@ int msleep(long msec)
 }
 
 
-
-
-int get()
-{
-   // get from queue. Place implementation here 
-   return 0;
+void put(int i) {
+    if (length <= 5) {
+        buffer[end] = i;
+        end += 1;
+        end = end % 5;
+        length += 1;
+    }
+    else {
+        printf("Failed: Queue is full.");
+    }
 }
 
-void put(int a)
-{
-    // place implementation here
+int get() {
+    if (length != 0) {
+        int i;
+        i = buffer[start];
+        start += 1;
+        start = start % 5;
+        length -= 1;
+        return i;
+    }
+    else {
+        printf("Failed: No item in the queue.");
+    }
 }
 
 
@@ -76,8 +96,6 @@ void* producer(void* inputItem)
 
 void consume(int c)
 {
-    // delete line below....
-    int length = 0;
     printf("Your number is: %d. Length of queue: %d\n",c, length);
 }
 void* consumer(void* inputItem)
