@@ -170,7 +170,7 @@ int main()
     pthread_t id;
 
     const char* c = "Producer Thread";
-
+    // create and spawn thread.
     pthread_create(&id, NULL, producer, (void*)c);
 
     consumer((void*)&a);
