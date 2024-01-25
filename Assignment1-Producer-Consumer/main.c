@@ -1,4 +1,14 @@
-
+/**
+ * @file main.c
+ * @author Benjamin Carter and Trevor Pope
+ * @brief Producer/Consumer Assignment. This program calls a thread that populates
+ * a queue. The consumer then takes data from the queue.
+ * @version 0.1
+ * @date 2024-01-24
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
@@ -36,7 +46,11 @@ int msleep(long msec)
     return res;
 }
 
-
+/**
+ * @brief This function adds an element to the queue.
+ * 
+ * @param i 
+ */
 void put(int i) {
     if (length <= SIZE) {
         buffer[end] = i;
@@ -49,6 +63,11 @@ void put(int i) {
     }
 }
 
+/**
+ * @brief This function retrieves an element from the queue.
+ * 
+ * @return int 
+ */
 int get() {
     if (length != 0) {
         int i;
@@ -76,12 +95,22 @@ volatile int counter;
 // note, all global variables that the threads will use need "volatile"!
 
 
+/**
+ * @brief This function reflects the producing segment.
+ * 
+ * @return int 
+ */
 int produce()
 {
     return counter++;
 }
 
-
+/**
+ * @brief This function acts as the producer segment. It continually produces data and appends it to the queue.
+ * 
+ * @param inputItem 
+ * @return void* 
+ */
 void* producer(void* inputItem)
 {
     printf("Producer thread started\n");
@@ -94,10 +123,22 @@ void* producer(void* inputItem)
     }
 }
 
+/**
+ * @brief This function acts as the comsuming segment.
+ * 
+ * @param c 
+ */
 void consume(int c)
 {
     printf("Your number is: %d. Length of queue: %d\n",c, length);
 }
+
+/**
+ * @brief This function is the consumer segment. It retrieves data from the queue regularly.
+ * 
+ * @param inputItem 
+ * @return void* 
+ */
 void* consumer(void* inputItem)
 {
     printf("Consumer portion started\n");
@@ -116,6 +157,11 @@ void* consumer(void* inputItem)
      return NULL;
 }
 
+/**
+ * @brief This calls the main program.
+ * 
+ * @return int 
+ */
 int main()
 {
     printf("Program Started\n");
