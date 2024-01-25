@@ -5,7 +5,7 @@
 #include <time.h>
 #include <errno.h>
 
-#define SIZE  5
+#define SIZE  10
 
 int buffer[SIZE];
 int start;
@@ -38,14 +38,14 @@ int msleep(long msec)
 
 
 void put(int i) {
-    if (length <= 5) {
+    if (length <= SIZE) {
         buffer[end] = i;
         end += 1;
-        end = end % 5;
+        end = end % SIZE;
         length += 1;
     }
     else {
-        printf("Failed: Queue is full.");
+        printf("Failed: Queue is full.\n");
     }
 }
 
@@ -54,12 +54,12 @@ int get() {
         int i;
         i = buffer[start];
         start += 1;
-        start = start % 5;
+        start = start % SIZE;
         length -= 1;
         return i;
     }
     else {
-        printf("Failed: No item in the queue.");
+        printf("Failed: No item in the queue.\n");
     }
 }
 
@@ -104,13 +104,14 @@ void* consumer(void* inputItem)
     msleep(800);
     while(1)
     {
-       // if(length == 0)
-       //  {
-       //      printf("Empty!");
-       //  }
-       msleep(250);
-       int c = get();
-       consume(c);
+        msleep(250);
+        if(length == 0)
+        {
+            printf("Empty!\n");
+            continue;
+        }
+        int c = get();
+        consume(c);
     }
      return NULL;
 }
