@@ -93,7 +93,7 @@ int get() {
 // function must take in a void* and return a void*
 
 // int pthread_create(OUTPUT_STRUCT_REF, PTHREAD_ATTR_T for attributes to pass in normally NULL, FUNC_T>
-volatile int counter;
+volatile int counter = 1001;
 // note, all global variables that the threads will use need "volatile"!
 
 
@@ -150,7 +150,7 @@ void* consumer(void* inputItem)
     {
         if(length < 8 && !burst)
         {
-            msleep(3000);
+            msleep(4500);
         }
         else
         {
@@ -182,7 +182,7 @@ int main()
 {
     printf("Program Started\n");
     int a = 0;
-    counter = 0;
+    counter = 1001;
     pthread_t id;
 
     const char* c = "Producer Thread";
