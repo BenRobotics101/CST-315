@@ -22,6 +22,8 @@ int start;
 int end;
 int length = 0;
 
+int burst = 0;
+
 /* msleep(): Sleep for the requested number of milliseconds. 
 https://stackoverflow.com/questions/1157209/is-there-an-alternative-sleep-function-in-c-to-milliseconds
 */
@@ -119,7 +121,8 @@ void* producer(void* inputItem)
     {
         int i = produce();
         put(i);
-        msleep(250); // 250 milliseconds
+        printf("\nProducing! Data: %d, Slot of Queue: %d\n",i, length);
+        msleep(2500); // 250 milliseconds
     }
 }
 
@@ -130,7 +133,7 @@ void* producer(void* inputItem)
  */
 void consume(int c)
 {
-    printf("Your number is: %d. Length of queue: %d\n",c, length);
+    printf("\nConsuming! Data: %d\n",c);
 }
 
 /**
@@ -142,14 +145,27 @@ void consume(int c)
 void* consumer(void* inputItem)
 {
     printf("Consumer portion started\n");
-    msleep(800);
+    msleep(8000);
     while(1)
     {
-        msleep(250);
+        if(length < 8 && !burst)
+        {
+            msleep(3000);
+        }
+        else
+        {
+            burst = 1;
+            msleep(500);
+        }
         if(length == 0)
         {
             printf("Empty!\n");
             continue;
+        }
+        if(length < 2)
+        {
+            burst = 0;
+            msleep(5000);
         }
         int c = get();
         consume(c);
