@@ -145,7 +145,7 @@ void consume(int c)
 void* consumer(void* inputItem)
 {
     printf("Consumer portion started\n");
-    msleep(8000);
+    msleep(8255);
     while(1)
     {
         if(length < 8 && !burst)
