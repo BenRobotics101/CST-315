@@ -133,8 +133,8 @@ int main()
                 typerX++;
 
             }
-            myConsole.putString(std::to_string(typerX), 2, 2);
-            myConsole.putString(std::to_string(typerY), 2, 3);
+            myConsole.putString(std::to_string(typerX) + std::string("  "), 2, 2);
+            myConsole.putString(std::to_string(typerY) + std::string("  "), 2, 3);
 
             myConsole.putString(std::string("Press ") + std::to_string(inc), 2, debugRow);
             debugRow++;
