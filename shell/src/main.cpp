@@ -4,6 +4,7 @@
 #include <PrettyConsole/inputHandler.h>
 #include <PrettyConsole/rectangle.h>
 #include <PrettyConsole/line.h>
+#include <stack>
 #include <string>
 
 int main()
@@ -61,7 +62,9 @@ int main()
     myConsole.putString("$ ",typerX, typerY);
 
     myConsole.render();
-    
+
+    stack<char> inputCommand = stack<char>();
+        
     // start keyboard listener
     keyboard.startListening();
     int debugRow = 5;
@@ -90,6 +93,7 @@ int main()
                 }
                 myConsole.putString(std::string(1,inc),typerX, typerY);
                 chars++;
+                inputCommand.push(inc);
             }
             else if(inc == 127 && chars > 0)
             {
@@ -106,6 +110,28 @@ int main()
                     continue;
                 }
                 chars--;
+                inputCommand.pop();
+            }
+            else if(inc == 10)
+            {
+                std::string command = std::string();
+                while(!inputCommand.empty())
+                {
+                    // convert stack to string!
+                    char c = inputCommand.top();
+                    inputCommand.pop();
+                    command = std::string(1, c) + command;
+                }
+                myConsole.addShape(&dividerLine); // clears the box.
+                myConsole.putString(command,dividerLine.getAnchorX(),dividerLine.getAnchorY());
+
+                myConsole.addShape(&commandBox);
+                typerX = 1;
+                typerY = height - 4;
+                chars = 0;
+                myConsole.putString("$ ",typerX, typerY);
+                typerX++;
+
             }
             myConsole.putString(std::to_string(typerX), 2, 2);
             myConsole.putString(std::to_string(typerY), 2, 3);
