@@ -23,7 +23,9 @@ struct CommandStatus
     int status = 0;
 };
 
-CommandStatus currentCommand;
+std::queue<CommandStatus*> commandQueue;
+std::queue<CommandStatus*> displayQueue;
+std::vector<std::string> inputHistory;
 
 int currentRow = 0;
 
@@ -41,119 +43,132 @@ void clear(Console &myConsole)
 
 void commandProcessor(Console* myConsole)
 {
-    currentCommand.response = "";
-    Shell sh = Shell();
-    if(currentCommand.command == "clear")
+    while(!commandQueue.empty())
     {
-        clear(*(myConsole));
-        currentRow = 0;
-        currentCommand.status = 0;
-    }
-    else
-    {
-        CommandRespoonse cr = sh.callCommand(currentCommand.command);
-        currentCommand.response = cr.response;
-        currentCommand.status = cr.returnCode;
-        currentCommand.isDisplay = false;
-        currentCommand.isDone = true;
+        CommandStatus* curCommand = commandQueue.front();
+
+        curCommand->response = "";
+        Shell sh = Shell();
+        if(curCommand->command == "clear")
+        {
+            clear(*(myConsole));
+            currentRow = 0;
+            curCommand->status = 0;
+        }
+        else
+        {
+            CommandRespoonse cr = sh.callCommand(curCommand->command);
+            curCommand->response = cr.response;
+            curCommand->status = cr.returnCode;
+            curCommand->isDisplay = false;
+            curCommand->isDone = true;
+        }
+
+        curCommand->isDisplay = false;
+        curCommand->isDone = true;
+        displayQueue.push(curCommand);
+        commandQueue.pop();
     }
 
-    currentCommand.isDisplay = false;
-    currentCommand.isDone = true;
 }
 
 void displayCommandResult(Console &myConsole, int repeat=0)
 {
-    Style commandBarColor = Style();
-    if(currentCommand.status == 0)
+    while(!displayQueue.empty())
     {
-        commandBarColor.setBackgroundColor(60, 255, 60);
-        commandBarColor.setTextColor(0,0,0);
-    }
-    else if(currentCommand.status == 1)
-    {
-        commandBarColor.setBackgroundColor(255, 255, 60);
-        commandBarColor.setTextColor(0,0,0);
-    }
-    else
-    {
-        commandBarColor.setBackgroundColor(255, 60, 60);
-        commandBarColor.setTextColor(0,0,0);
-    }
-    
-    commandBarColor.turnOffBlink();
-    
-    int lastRowPaint = -1;
-    int offset = 0;
-    for(int i = 0; i < currentCommand.command.size(); i++)
-    {
-        int row = i / (myConsole.getWidth() - 3);
-        int col = i % (myConsole.getWidth() - 3);
-        char inc = currentCommand.command.at(i);
+        CommandStatus* curCommand = displayQueue.front();
+        displayQueue.pop();
+        Style commandBarColor = Style();
+        if(curCommand->status == 0)
+        {
+            commandBarColor.setBackgroundColor(60, 255, 60);
+            commandBarColor.setTextColor(0,0,0);
+        }
+        else if(curCommand->status == 1)
+        {
+            commandBarColor.setBackgroundColor(255, 255, 60);
+            commandBarColor.setTextColor(0,0,0);
+        }
+        else
+        {
+            commandBarColor.setBackgroundColor(255, 60, 60);
+            commandBarColor.setTextColor(0,0,0);
+        }
         
-        if(row + 1 + currentRow > myConsole.getHeight() - 9)
+        commandBarColor.turnOffBlink();
+        
+        int lastRowPaint = -1;
+        int offset = 0;
+        for(int i = 0; i < curCommand->command.size(); i++)
         {
-            clear(myConsole);
-            currentRow = 0;
-            return displayCommandResult(myConsole, 1);
-        }
-        if(lastRowPaint != row)
-        {
-            int barWidth = myConsole.getWidth() - 3;
-            if(currentCommand.command.size() + 2 < myConsole.getWidth() - 3)
+            int row = i / (myConsole.getWidth() - 3);
+            int col = i % (myConsole.getWidth() - 3);
+            char inc = curCommand->command.at(i);
+            
+            if(row + 1 + currentRow > myConsole.getHeight() - 9)
             {
-                barWidth = currentCommand.command.size() + 1;
+                clear(myConsole);
+                currentRow = 0;
+                return displayCommandResult(myConsole, 1);
             }
-            Line2D commandBar = Line2D(1, row + 1 + currentRow, 1 + barWidth, row + 1 + currentRow);
-            commandBar.setFill(commandBarColor);
-            myConsole.addShape(&commandBar);
-            lastRowPaint = row;
+            if(lastRowPaint != row)
+            {
+                int barWidth = myConsole.getWidth() - 3;
+                if(curCommand->command.size() + 2 < myConsole.getWidth() - 3)
+                {
+                    barWidth = curCommand->command.size() + 1;
+                }
+                Line2D commandBar = Line2D(1, row + 1 + currentRow, 1 + barWidth, row + 1 + currentRow);
+                commandBar.setFill(commandBarColor);
+                myConsole.addShape(&commandBar);
+                lastRowPaint = row;
+            }
+            myConsole.putString(std::string(1,inc),col + 2,row + 1 + currentRow);
         }
-        myConsole.putString(std::string(1,inc),col + 2,row + 1 + currentRow);
-    }
-    int textRow = lastRowPaint + 2 + currentRow;
-    int textCol = 0;
+        int textRow = lastRowPaint + 2 + currentRow;
+        int textCol = 0;
 
-    for(int i = 0; i < currentCommand.response.size(); i++)
-    {
-        char inc = currentCommand.response.at(i);
-        if(inc == 10)
+        for(int i = 0; i < curCommand->response.size(); i++)
         {
-            textCol = 0;
-            textRow += 1;
-            continue;
-        }
-        if(textRow > myConsole.getHeight() - 9)
-        {
-            clear(myConsole);
-            currentRow = 0;
-            if(repeat == 1)
+            char inc = curCommand->response.at(i);
+            if(inc == 10)
             {
-                currentCommand.response = "too big!";
-                return;
+                textCol = 0;
+                textRow += 1;
+                continue;
             }
-            return displayCommandResult(myConsole, 1);
-        }
-        myConsole.putString(std::string(1, inc),textCol + 1, textRow);
-        textCol++;
-        if(textCol > myConsole.getWidth() - 3)
-        {
-            textCol = 0;
-            textRow++;
-        }
-        if(textRow > myConsole.getHeight() - 9)
-        {
-            clear(myConsole);
-            currentRow = 0;
-            if(repeat == 1)
+            if(textRow > myConsole.getHeight() - 9)
             {
-                currentCommand.response = "too big!";
-                return;
+                clear(myConsole);
+                currentRow = 0;
+                if(repeat == 1)
+                {
+                    curCommand->response = "too big!";
+                    return;
+                }
+                return displayCommandResult(myConsole, 1);
             }
-            return displayCommandResult(myConsole, 1);
+            myConsole.putString(std::string(1, inc),textCol + 1, textRow);
+            textCol++;
+            if(textCol > myConsole.getWidth() - 3)
+            {
+                textCol = 0;
+                textRow++;
+            }
+            if(textRow > myConsole.getHeight() - 9)
+            {
+                clear(myConsole);
+                currentRow = 0;
+                if(repeat == 1)
+                {
+                    curCommand->response = "too big!";
+                    return;
+                }
+                return displayCommandResult(myConsole, 1);
+            }
         }
+        currentRow = textRow;
     }
-    currentRow = textRow;
 
 }
 
@@ -161,13 +176,17 @@ void displayCommandResult(Console &myConsole, int repeat=0)
 
 int main()
 {
+    commandQueue = queue<CommandStatus*>();
+    displayQueue = queue<CommandStatus*>();
+    inputHistory = std::vector<std::string>();
+
     Console myConsole = Console();
     
     if(!myConsole.getSupport())
     {
         std::cout << "Platform not supported!" << std::endl;
     }
-    
+
     InputHandler keyboard;
     int height = myConsole.getHeight();
     int width = myConsole.getWidth();
@@ -267,9 +286,10 @@ int main()
                 textbox.pop();
                 displayUpdated = true;
             }
-            else if(inc == 10 && currentCommand.isDone && currentCommand.isDisplay) // enter!
+            else if(inc == 10 && commandQueue.empty() && displayQueue.empty()) // enter!
             {
                 // process command!
+                std::vector<std::string> semicolonSections;
                 std::string command = std::string();
                 while(!textbox.empty())
                 {
@@ -277,10 +297,36 @@ int main()
                     char c = textbox.top();
                     textbox.pop();
                     command = std::string(1, c) + command;
+                    
                 }
+                std::string dump;
+                for(int i = 0; i < command.size(); i++)
+                {
+                    if(command.at(i) == ';')
+                    {
+                        semicolonSections.push_back(dump);
+                        dump = "";
+                        continue;
+                    }
+                    dump += command.at(i);
+                }
+                semicolonSections.push_back(dump);
+                for(int i = 0; i < semicolonSections.size(); i++)
+                {
+                    std::string section = semicolonSections[i];
+                    if(section == "" || section == " ")
+                    {
+                        continue;
+                    }
+                    CommandStatus* currentCommand = new CommandStatus();
+                    currentCommand->command = section;
+                    currentCommand->isDone = false;
+                    currentCommand->status = 0;
+                    commandQueue.push(currentCommand);
+                }
+                
 
-                currentCommand.command = command;
-                currentCommand.isDone = false;
+                inputHistory.push_back(command);
 
                 processingThread = new std::thread(commandProcessor,&myConsole);
                 myConsole.addShape(&commandBox);
@@ -288,15 +334,15 @@ int main()
                 typerY = height - 4;
                 myConsole.putString("$ ",typerX, typerY);
                 typerX++;
+                displayUpdated = true;
                 
             }
         } 
 
-        if(currentCommand.isDone && !currentCommand.isDisplay)
+        if(commandQueue.empty() && !displayQueue.empty())
         {
             displayCommandResult(myConsole);
             displayUpdated = true;
-            currentCommand.isDisplay = true;
         }       
         
 
@@ -308,96 +354,7 @@ int main()
     }
 
     keyboard.stopListening();
+    system("clear");
     
 }
 
-
-/****************
- *  OLD CODE
- * 
- * **************/
-
-// start keyboard listener
-    // stack<char> inputCommand = stack<char>();
-    // keyboard.startListening();
-    // int debugRow = 5;
-    // typerX ++;
-    // while(true)
-    // {
-    //     if(keyboard.isAvailable())
-    //     {
-    //         char inc = keyboard.read();
-    //         if(inc == 24)
-    //         {
-    //             break;
-    //         }
-    //         else if(inc > 31 && inc < 127)
-    //         {
-    //             // letter!
-    //             typerX ++;
-    //             if(typerX > width - 2)
-    //             {
-    //                 typerX = 1;
-    //                 typerY += 1;
-    //             } 
-    //             if(typerY > height)
-    //             {
-    //                 break;
-    //             }
-    //             myConsole.putString(std::string(1,inc),typerX, typerY);
-    //             chars++;
-    //             inputCommand.push(inc);
-    //         }
-    //         else if(inc == 127 && chars > 0)
-    //         {
-    //             myConsole.putString(" ",typerX, typerY);
-    //             typerX--;
-    //             if(typerX < 1)
-    //             {
-    //                 typerX = width - 2;
-    //                 typerY -= 1;
-    //             } 
-    //             if(typerY < height - 5)
-    //             {
-    //                 // error! Out of bounds!
-    //                 continue;
-    //             }
-    //             chars--;
-    //             inputCommand.pop();
-    //         }
-    //         else if(inc == 10)
-    //         {
-    //             std::string command = std::string();
-    //             while(!inputCommand.empty())
-    //             {
-    //                 // convert stack to string!
-    //                 char c = inputCommand.top();
-    //                 inputCommand.pop();
-    //                 command = std::string(1, c) + command;
-    //             }
-    //             myConsole.addShape(&dividerLine); // clears the box.
-    //             myConsole.putString(command,dividerLine.getAnchorX(),dividerLine.getAnchorY());
-
-    //             myConsole.addShape(&commandBox);
-    //             typerX = 1;
-    //             typerY = height - 4;
-    //             chars = 0;
-    //             myConsole.putString("$ ",typerX, typerY);
-    //             typerX++;
-
-    //         }
-    //         myConsole.putString(std::to_string(typerX) + std::string("  "), 2, 2);
-    //         myConsole.putString(std::to_string(typerY) + std::string("  "), 2, 3);
-
-    //         myConsole.putString(std::string("Press ") + std::to_string(inc), 2, debugRow);
-    //         debugRow++;
-    //         if(debugRow > height - 10)
-    //         {
-    //             debugRow = 5;
-    //         }
-    //         myConsole.putString("-------- ", 2, debugRow);
-    //         myConsole.render();
-    //     }
-    // }
-
-    // keyboard.stopListening();
