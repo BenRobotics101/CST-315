@@ -79,6 +79,11 @@ void InputHandler::listeningThread()
     while(listen);
 }
 
+void InputHandler::simPress(char c)
+{
+    inputBuffer.push(c);
+}
+
 InputHandler::InputHandler()
 {
     inputBuffer = queue<char>();

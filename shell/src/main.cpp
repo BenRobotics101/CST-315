@@ -11,6 +11,7 @@
 #include <shell.h>
 
 volatile bool displayUpdated = false;
+volatile bool stopProgram = false;
 
 std::thread* processingThread;
 
@@ -28,6 +29,7 @@ std::queue<CommandStatus*> displayQueue;
 std::vector<std::string> inputHistory;
 
 int currentRow = 0;
+int history = -1;
 
 void clear(Console &myConsole)
 {
@@ -54,6 +56,11 @@ void commandProcessor(Console* myConsole)
             clear(*(myConsole));
             currentRow = 0;
             curCommand->status = 0;
+        }
+        else if(curCommand->command == "exit")
+        {
+            stopProgram = true;
+            curCommand->response = "Press any key to exit program!";
         }
         else
         {
@@ -254,6 +261,60 @@ int main()
             {
                 break;
             }
+            else if(inc == 27 && inputHistory.size() > 0)
+            {
+                bool stop = false;
+                while(keyboard.isAvailable() < 2)
+                {
+                    if(keyboard.isAvailable() && keyboard.peek() != 91)
+                    {
+                        stop = true;
+                        break;
+                    }
+                }
+                if(stop)
+                {
+                    continue;
+                }
+                char inc2 = keyboard.read();
+                char inc3 = keyboard.read();
+                if(inc3 == 65) // down arrow
+                {
+                    if(history + 1 >= inputHistory.size())
+                    {
+                        continue;
+                    }
+                    history++;
+
+                }
+                else if(inc3 == 66)
+                {
+                    // up! arrow
+                    if(history <= 0)
+                    {
+                        continue;
+                    }
+                    history--;
+                }
+                // clear!
+                myConsole.addShape(&commandBox);
+                typerX = 1;
+                typerY = height - 4;
+                myConsole.putString("$ ",typerX, typerY);
+                typerX++;
+
+                // "retype it"
+                keyboard.clear();
+                while(!textbox.empty())
+                {
+                    textbox.pop();
+                }
+                std::string s = inputHistory[history];
+                for(int i = 0; i< s.size(); i++)
+                {
+                    keyboard.simPress(s.at(i));
+                }
+            }
             else if(inc > 31 && inc < 127) // letter/number
             {
                 int originalX = typerX;
@@ -325,8 +386,8 @@ int main()
                     commandQueue.push(currentCommand);
                 }
                 
-
-                inputHistory.push_back(command);
+                inputHistory.insert(inputHistory.begin(), command);
+                history = -1;
 
                 processingThread = new std::thread(commandProcessor,&myConsole);
                 myConsole.addShape(&commandBox);
@@ -351,10 +412,17 @@ int main()
             myConsole.render();    
             displayUpdated = false;
         }
+        if(stopProgram)
+        {
+            break;
+        }
     }
 
     keyboard.stopListening();
+    myConsole.clear();
     system("clear");
+    std::cout << "exit!";
+
     
 }
 

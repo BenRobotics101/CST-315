@@ -32,6 +32,7 @@ public:
     char peek();
     char read();
     void clear();
+    void simPress(char c);
     
 private:   
     bool listen;
