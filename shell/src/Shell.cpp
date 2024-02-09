@@ -1,3 +1,7 @@
+
+#define DO_NOT_BUILD_ME_SHELL
+#ifndef DO_NOT_BUILD_ME_SHELL
+
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
@@ -167,3 +171,5 @@ int main() {
     }
     return 0;
 }
+
+#endif
