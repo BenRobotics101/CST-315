@@ -420,8 +420,8 @@ int main()
 
     keyboard.stopListening();
     myConsole.clear();
+    std::cout << "exit!\033[0m";
     system("clear");
-    std::cout << "exit!";
 
     
 }
