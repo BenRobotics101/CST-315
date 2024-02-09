@@ -124,6 +124,8 @@ int main()
                 }
                 myConsole.addShape(&dividerLine); // clears the box.
                 myConsole.putString(command,dividerLine.getAnchorX(),dividerLine.getAnchorY());
+                
+                    
 
                 myConsole.addShape(&commandBox);
                 typerX = 1;
