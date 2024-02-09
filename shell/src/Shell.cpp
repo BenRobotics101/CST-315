@@ -4,13 +4,10 @@
 
 #include <iostream>
 #include <cstdlib>
-#include <cstring>
 #include <sstream>
 #include <vector>
-#include <cstdio>
 #include <string>
 #include <array>
-#include <stdio.h>
 #include <algorithm>
 #ifdef _WIN32
 #include <direct.h>
@@ -162,6 +159,10 @@ int main() {
     system("clear");
     Shell shell;
     std::string input;
+
+    // Bash file input
+    system("./src/bash.sh");
+
     // Get the input from the console
     while(1) {
         std::cout << "\033[38;5;115m" << shell.whoami() << ":" << "\033[38;5;81m" << shell.getCurrentDirectory() << "\033[0m" << "$ ";
