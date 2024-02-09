@@ -23,13 +23,37 @@ char InputHandler_getch()
     {
         perror ("read()");
     }
+    // old.c_lflag |= ICANON;
+    // old.c_lflag |= ECHO;
+    // if (tcsetattr(0, TCSADRAIN, &old) < 0)
+    // {
+    //     perror ("tcsetattr ~ICANON");
+    // }
+    return (buf);
+    #else
+    return 0;
+    #endif
+}
+
+void InputHandler_close()
+{
+    #ifdef LINUX
+    char buf = 0;
+    struct termios old = {0};
+    if (tcgetattr(0, &old) < 0)
+    {
+        perror("tcsetattr()");
+    }
+    old.c_lflag &= ~ICANON;
+    old.c_lflag &= ~ECHO;
+    old.c_cc[VMIN] = 1;
+    old.c_cc[VTIME] = 0;
     old.c_lflag |= ICANON;
     old.c_lflag |= ECHO;
     if (tcsetattr(0, TCSADRAIN, &old) < 0)
     {
         perror ("tcsetattr ~ICANON");
     }
-    return (buf);
     #else
     return 0;
     #endif
@@ -49,7 +73,7 @@ void InputHandler::listeningThread()
         }
         else
         {
-            sleep_for(milliseconds(50));
+            sleep_for(milliseconds(KEYBOARD_DELAY));
         }
     }
     while(listen);
@@ -81,6 +105,8 @@ void InputHandler::stopListening()
     }
     listen = false;
     listenThread->join();
+    InputHandler_close();
+    
     delete listenThread;
 }
 

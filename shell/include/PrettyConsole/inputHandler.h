@@ -13,7 +13,11 @@
 #include <thread>
 
 
+// IN Mesc
+#define KEYBOARD_DELAY 10 
+
 char InputHandler_getch();
+void InputHandler_close();
 
 class InputHandler
 {
