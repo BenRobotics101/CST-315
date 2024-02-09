@@ -8,12 +8,13 @@
 #include <string>
 #include <queue>
 #include <thread>
+#include <shell.h>
 
 volatile bool displayUpdated = false;
 
 std::thread* processingThread;
 
-struct CommandAndResponse
+struct CommandStatus
 {
     std::string command;
     std::string response;
@@ -22,7 +23,7 @@ struct CommandAndResponse
     int status = 0;
 };
 
-CommandAndResponse currentCommand;
+CommandStatus currentCommand;
 
 int currentRow = 0;
 
@@ -38,10 +39,25 @@ void clear(Console &myConsole)
     myConsole.addShape(&background);
 }
 
-void commandProcessor()
+void commandProcessor(Console* myConsole)
 {
-    currentCommand.response = "This is the response to: " + currentCommand.command;
-    currentCommand.status = 1;
+    currentCommand.response = "";
+    Shell sh = Shell();
+    if(currentCommand.command == "clear")
+    {
+        clear(*(myConsole));
+        currentRow = 0;
+        currentCommand.status = 0;
+    }
+    else
+    {
+        CommandRespoonse cr = sh.callCommand(currentCommand.command);
+        currentCommand.response = cr.response;
+        currentCommand.status = cr.returnCode;
+        currentCommand.isDisplay = false;
+        currentCommand.isDone = true;
+    }
+
     currentCommand.isDisplay = false;
     currentCommand.isDone = true;
 }
@@ -266,7 +282,7 @@ int main()
                 currentCommand.command = command;
                 currentCommand.isDone = false;
 
-                processingThread = new std::thread(commandProcessor);
+                processingThread = new std::thread(commandProcessor,&myConsole);
                 myConsole.addShape(&commandBox);
                 typerX = 1;
                 typerY = height - 4;

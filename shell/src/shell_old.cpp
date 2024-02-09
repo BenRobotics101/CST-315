@@ -2,29 +2,9 @@
 #define DO_NOT_BUILD_ME_SHELL
 #ifndef DO_NOT_BUILD_ME_SHELL
 
-#include <iostream>
-#include <cstdlib>
-#include <sstream>
-#include <vector>
-#include <string>
-#include <array>
-#include <algorithm>
-#ifdef _WIN32
-#include <direct.h>
-// MSDN recommends against using getcwd & chdir names
-#define cwd _getcwd
-#define cd _chdir
-#else
-#include "unistd.h"
-#define cwd getcwd
-#define cd chdir
-#endif
+#include "shell.h"
 
-struct Command {
-    std::string command;
-    std::vector<std::string> options;
-    std::vector<std::string> arguments;
-};
+
 
 Command parseCommand(const std::string& input) {
     Command cmd;
@@ -45,9 +25,6 @@ Command parseCommand(const std::string& input) {
 
     return cmd;
 }
-
-
-const int MAX_PATH_LENGTH = 1024;
 
 class Shell {
 private:
