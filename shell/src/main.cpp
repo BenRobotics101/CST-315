@@ -1,4 +1,13 @@
-
+/**
+ * @file main.cpp
+ * @author Benjamin Carter and Trevor Pope
+ * @brief The FancyShell Program.
+ * @version 0.1
+ * @date 2024-02-10
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include <iostream>
 #include <PrettyConsole/console.h>
 #include <PrettyConsole/inputHandler.h>
@@ -39,6 +48,11 @@ std::vector<std::string> inputHistory;
 int currentRow = 0;
 int history = -1;
 
+/**
+ * @brief Clear the console and repaint the UI for the response box
+ * 
+ * @param myConsole 
+ */
 void clear(Console &myConsole)
 {
     // clear!
@@ -51,6 +65,11 @@ void clear(Console &myConsole)
     myConsole.addShape(&background);
 }
 
+/**
+ * @brief The command queue consumer. Executes the Shell commands
+ * 
+ * @param myConsole 
+ */
 void commandProcessor(Console* myConsole)
 {
     while(!commandQueue.empty())
@@ -98,6 +117,12 @@ void commandProcessor(Console* myConsole)
 
 }
 
+/**
+ * @brief Display Queue consumer. Displays command results onto console
+ * 
+ * @param myConsole 
+ * @param repeat 
+ */
 void displayCommandResult(Console &myConsole, int repeat=0)
 {
     while(!displayQueue.empty())
@@ -219,6 +244,11 @@ void displayCommandResult(Console &myConsole, int repeat=0)
 Console* exitConsole;
 InputHandler* exitKeyboard;
 
+/**
+ * @brief Push command onto the command queue for execution
+ * 
+ * @param command 
+ */
 void manuallyPushCommand(std::string command)
 {
     CommandStatus* currentCommand = new CommandStatus();
@@ -228,12 +258,24 @@ void manuallyPushCommand(std::string command)
     commandQueue.push(currentCommand);
 }
 
+/**
+ * @brief Called when Ctrl+C is pressed. Runs exit command.
+ * 
+ * @param s 
+ */
 void exitHandler(int s)
 {
     manuallyPushCommand("exit");
     commandProcessor(exitConsole);
 }
 
+/**
+ * @brief Main function. Contains initial draw and main loop.
+ * 
+ * @param argc 
+ * @param argv 
+ * @return int 
+ */
 int main(int argc, char** argv)
 {
     // exit section. from https://stackoverflow.com/questions/1641182/how-can-i-catch-a-ctrl-c-event
@@ -244,7 +286,7 @@ int main(int argc, char** argv)
     sigIntHandler.sa_flags = 0;
     sigaction(SIGINT, &sigIntHandler, NULL);
    
-    // end exit section.
+    // end exit section. ^^^^^^^^^^^^^^^^^^
 
     commandQueue = queue<CommandStatus*>();
     displayQueue = queue<CommandStatus*>();
@@ -271,6 +313,8 @@ int main(int argc, char** argv)
     myConsole.render();
 
     clear(myConsole);
+
+    /* UI CREATION SECTION */
 
     Style commandColor = Style();
     commandColor.setBackgroundColor(60, 60, 60);
@@ -315,6 +359,9 @@ int main(int argc, char** argv)
 
     myConsole.render();
 
+    /* END UI CREATION SECTION */
+
+    /* PROCESS ARGUMENTS SECTION */
     std::string arguments = "load ";
       
     keyboard.startListening();
@@ -334,6 +381,8 @@ int main(int argc, char** argv)
         keyboard.simPress('\n');
     }
 
+    /* END PROCESS ARGUMENTS SECTION */
+
     Style cursorColor = Style();
     cursorColor.setBackgroundColor(0,255,0);
 
@@ -348,6 +397,7 @@ int main(int argc, char** argv)
     bool drawCursor = false;
     while(true)
     {
+        /* Blinking Cursor section. */
         if(time(NULL) != timestamp)
         {
             timestamp = time(NULL);
@@ -381,6 +431,7 @@ int main(int argc, char** argv)
             }
         }
         
+        /* Keyboard section. */
         if(keyboard.isAvailable())
         {
             char inc = keyboard.read();
@@ -388,6 +439,7 @@ int main(int argc, char** argv)
             {
                 exitHandler(0);
             }
+            /* user presses arrows */
             else if(inc == 27 && inputHistory.size() > 0)
             {
                 bool stop = false;
@@ -447,6 +499,7 @@ int main(int argc, char** argv)
                     keyboard.simPress(s.at(i));
                 }
             }
+            /* user presses a letter/number */
             else if(inc > 31 && inc < 127) // letter/number
             {
                 int originalX = typerX;
@@ -473,6 +526,7 @@ int main(int argc, char** argv)
                 // myConsole.putString(std::string(1,inc),typerX, typerY, commandColor);
                 displayUpdated = true;
             }
+            /* user presses backspace */
             else if(inc == 127 && !textbox.empty()) // backspace
             {
                
@@ -506,6 +560,7 @@ int main(int argc, char** argv)
                 textbox.pop();
                 displayUpdated = true;
             }
+            /* user presses enter. push command to queue */
             else if(inc == 10 && commandQueue.empty() && displayQueue.empty()) // enter!
             {
                 // process command!
@@ -594,19 +649,20 @@ int main(int argc, char** argv)
             }
         } 
 
+        /* if no commands, run display queue consumer */
         if(commandQueue.empty() && !displayQueue.empty())
         {
             displayCommandResult(myConsole);
             displayUpdated = true;
         }       
         
-        
-
+        /* if display updated and keyboard is done, render! */
         if(displayUpdated && !keyboard.isAvailable())
         {
             myConsole.render();    
             displayUpdated = false;
         }
+        /* if program stopped, quit main loop*/
         if(stopProgram)
         {
             break;
@@ -617,6 +673,7 @@ int main(int argc, char** argv)
     myConsole.clear();
     myConsole.setTitle("Ubuntu");
     myConsole.render();
+    /* reset ascii console handling and reenable cursor */
     std::cout << "exit!\033[0m\033[?25h";
     system("clear");
 
