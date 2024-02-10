@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <fileLoader.h>
 
 volatile bool displayUpdated = false;
 volatile bool stopProgram = false;
@@ -64,7 +65,19 @@ void commandProcessor(Console* myConsole)
             currentRow = 0;
             curCommand->status = 0;
         }
-        else if(curCommand->command == "exit")
+        else if(curCommand->command.find("load") == 0)
+        {
+            if(curCommand->status >= 0)
+            {
+                curCommand->response = "Running program: " + std::to_string(curCommand->status) + " commands.";
+                curCommand->status = 0;
+            }
+            else
+            {
+                curCommand->response = "Script not found!";
+            }
+        }
+        else if(curCommand->command.find("exit") == 0)
         {
             stopProgram = true;
             curCommand->status = 0;
@@ -206,17 +219,22 @@ void displayCommandResult(Console &myConsole, int repeat=0)
 Console* exitConsole;
 InputHandler* exitKeyboard;
 
-void exitHandler(int s)
+void manuallyPushCommand(std::string command)
 {
     CommandStatus* currentCommand = new CommandStatus();
-    currentCommand->command = "exit";
+    currentCommand->command = command;
     currentCommand->isDone = false;
     currentCommand->status = 0;
     commandQueue.push(currentCommand);
+}
+
+void exitHandler(int s)
+{
+    manuallyPushCommand("exit");
     commandProcessor(exitConsole);
 }
 
-int main()
+int main(int argc, char** argv)
 {
     // exit section. from https://stackoverflow.com/questions/1641182/how-can-i-catch-a-ctrl-c-event
     struct sigaction sigIntHandler;
@@ -297,7 +315,26 @@ int main()
 
     myConsole.render();
 
+    std::string arguments = "load ";
       
+    keyboard.startListening();
+    for(int i = 1; i < argc; i++)
+    {
+        char* arg = argv[i];
+        arguments += arg;
+        arguments += ' ';
+    }
+    if(argc > 1)
+    {
+        for(char x : arguments.substr(0,arguments.size()-1))
+        {
+            keyboard.simPress(x);
+        }
+        keyboard.simPress('\n');
+        
+        myConsole.setTitle(arguments);
+    }
+
     Style cursorColor = Style();
     cursorColor.setBackgroundColor(0,255,0);
 
@@ -310,7 +347,6 @@ int main()
 
     unsigned long timestamp = time(NULL);
     bool drawCursor = false;
-    keyboard.startListening();
     while(true)
     {
         if(time(NULL) != timestamp)
@@ -484,13 +520,17 @@ int main()
                     command = std::string(1, c) + command;
                     
                 }
-                std::string dump;
+                std::string dump = "";
                 for(int i = 0; i < command.size(); i++)
                 {
                     if(command.at(i) == ';')
                     {
                         semicolonSections.push_back(dump);
                         dump = "";
+                        continue;
+                    }
+                    if(dump == "" && i == ' ')
+                    {
                         continue;
                     }
                     dump += command.at(i);
@@ -503,11 +543,28 @@ int main()
                     {
                         continue;
                     }
-                    CommandStatus* currentCommand = new CommandStatus();
-                    currentCommand->command = section;
-                    currentCommand->isDone = false;
-                    currentCommand->status = 0;
-                    commandQueue.push(currentCommand);
+                    if(section.find("load") == 0)
+                    {
+                        std::string fname = section.substr(5);
+                        FileLoader fload = FileLoader(fname.c_str());
+                        int feedback = fload.load();
+                        std::vector<std::string> cmds = fload.getCommands();
+                        
+                        CommandStatus* currentCommand = new CommandStatus();
+                        currentCommand->command = section;
+                        currentCommand->isDone = false;
+                        currentCommand->status = feedback;
+                        commandQueue.push(currentCommand);
+
+                        for(int c = 0; c < cmds.size(); c++)
+                        {
+                            manuallyPushCommand(cmds[c]);
+                        }
+                    }
+                    else
+                    {
+                        manuallyPushCommand(section);
+                    }
                 }
                 
                 inputHistory.insert(inputHistory.begin(), command);

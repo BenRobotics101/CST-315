@@ -6,19 +6,20 @@ Command parseCommand(const std::string& input)
 {
     Command cmd;
 
-    std::istringstream iss(input);
-    iss >> cmd.command;
+    // std::istringstream iss(input);
+    cmd.command = input;
+    // iss >> cmd.command;
 
-    std::string token;
-    while (iss >> token) {
-        if (token[0] == '-') {
-            // Token is an option
-            cmd.options.push_back(token);
-        } else {
-            // Token is an argument
-            cmd.arguments.push_back(token);
-        }
-    }
+    // std::string token;
+    // while (iss >> token) {
+    //     if (token[0] == '-') {
+    //         // Token is an option
+    //         cmd.options.push_back(token);
+    //     } else {
+    //         // Token is an argument
+    //         cmd.arguments.push_back(token);
+    //     }
+    // }
 
     return cmd;
 }
@@ -125,13 +126,13 @@ CommandRespoonse Shell::getCurrentDirectory()
 std::string Shell::buildCommand(const Command& cmd) 
 {
     std::string result = cmd.command;
-    for (const auto& opt : cmd.options) {
-        result += " " + opt;
-    }
-    for (const auto& arg : cmd.arguments) {
-        result += " " + arg;
-    }
-return result;
+    // for (const auto& opt : cmd.options) {
+    //     result += " " + opt;
+    // }
+    // for (const auto& arg : cmd.arguments) {
+    //     result += " " + arg;
+    // }
+    return result;
 }
 
 CommandRespoonse Shell::callCommand(const std::string& input) {
