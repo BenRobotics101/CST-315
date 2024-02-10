@@ -4,11 +4,18 @@
 #include <PrettyConsole/inputHandler.h>
 #include <PrettyConsole/rectangle.h>
 #include <PrettyConsole/line.h>
+#include <PrettyConsole/point.h>
 #include <stack>
 #include <string>
 #include <queue>
 #include <thread>
 #include <shell.h>
+#include <ctime>
+
+#include <signal.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
 
 volatile bool displayUpdated = false;
 volatile bool stopProgram = false;
@@ -99,8 +106,6 @@ void displayCommandResult(Console &myConsole, int repeat=0)
             commandBarColor.setBackgroundColor(255, 60, 60);
             commandBarColor.setTextColor(0,0,0);
         }
-        
-        commandBarColor.turnOffBlink();
 
         Style error = Style();
         error.setBackgroundColor(255,200,60);
@@ -198,15 +203,37 @@ void displayCommandResult(Console &myConsole, int repeat=0)
 
 }
 
+Console* exitConsole;
+InputHandler* exitKeyboard;
 
+void exitHandler(int s)
+{
+    CommandStatus* currentCommand = new CommandStatus();
+    currentCommand->command = "exit";
+    currentCommand->isDone = false;
+    currentCommand->status = 0;
+    commandQueue.push(currentCommand);
+    commandProcessor(exitConsole);
+}
 
 int main()
 {
+    // exit section. from https://stackoverflow.com/questions/1641182/how-can-i-catch-a-ctrl-c-event
+    struct sigaction sigIntHandler;
+
+    sigIntHandler.sa_handler = exitHandler;
+    sigemptyset(&sigIntHandler.sa_mask);
+    sigIntHandler.sa_flags = 0;
+    sigaction(SIGINT, &sigIntHandler, NULL);
+   
+    // end exit section.
+
     commandQueue = queue<CommandStatus*>();
     displayQueue = queue<CommandStatus*>();
     inputHistory = std::vector<std::string>();
 
     Console myConsole = Console();
+    exitConsole = &myConsole;
     
     if(!myConsole.getSupport())
     {
@@ -214,6 +241,7 @@ int main()
     }
 
     InputHandler keyboard;
+    exitKeyboard = &keyboard;
     int height = myConsole.getHeight();
     int width = myConsole.getWidth();
 
@@ -256,6 +284,7 @@ int main()
     myConsole.putString(username,userLine2.getAnchorX() + 1,userLine2.getAnchorY());
 
     std::string path = sh.getCurrentDirectory().response;
+    myConsole.setTitle("Fancy Shell - By Benjamin Carter and Trevor Pope - " + path);
     while(path.size() > width - 5)
     {
         path = path.substr(1);
@@ -269,6 +298,9 @@ int main()
     myConsole.render();
 
       
+    Style cursorColor = Style();
+    cursorColor.setBackgroundColor(0,255,0);
+
     /*****************
      * Main Loop!
      ****************/
@@ -276,16 +308,50 @@ int main()
     typerX++;
     stack<char> textbox = stack<char>();
 
-
+    unsigned long timestamp = time(NULL);
+    bool drawCursor = false;
     keyboard.startListening();
     while(true)
     {
+        if(time(NULL) != timestamp)
+        {
+            timestamp = time(NULL);
+            drawCursor = !drawCursor;
+            
+            int typerX_TEMP = typerX;
+            int typerY_TEMP = typerY;
+            typerX_TEMP++;
+            if(typerX_TEMP > width - 2)
+            {
+                typerX_TEMP = 1;
+                typerY_TEMP += 1;
+            } 
+            if(typerY_TEMP >= height - 1)
+            {
+                // FULL
+            }
+            else
+            {
+                Point2D cursor = Point2D(typerX_TEMP, typerY_TEMP);
+                if(!drawCursor)
+                {
+                    cursor.setFill(commandColor);
+                }
+                else
+                {
+                    cursor.setFill(cursorColor);
+                }
+                myConsole.addShape(&cursor);
+                displayUpdated = true;
+            }
+        }
+        
         if(keyboard.isAvailable())
         {
             char inc = keyboard.read();
             if(inc == 24 | inc == 3) // Ctrl+X
             {
-                break;
+                exitHandler(0);
             }
             else if(inc == 27 && inputHistory.size() > 0)
             {
@@ -363,12 +429,40 @@ int main()
                     continue; // FULL
                 }
                 textbox.push(inc);
-                myConsole.putString(std::string(1,inc),typerX, typerY);
+
+                Point2D cursor = Point2D(typerX, typerY);
+                cursor.setFill(commandColor);
+                cursor.putChar(inc);                
+                myConsole.addShape(&cursor);
+
+                // myConsole.putString(std::string(1,inc),typerX, typerY, commandColor);
                 displayUpdated = true;
+                timestamp = 0;
             }
             else if(inc == 127 && !textbox.empty()) // backspace
             {
-                myConsole.putString(" ",typerX, typerY);
+               
+                int typerX_TEMP = typerX;
+                int typerY_TEMP = typerY;
+                typerX_TEMP++;
+                if(typerX_TEMP > width - 2)
+                {
+                    typerX_TEMP = 1;
+                    typerY_TEMP += 1;
+                } 
+                if(typerY_TEMP >= height - 1)
+                {
+                    // FULL
+                }
+                else
+                {
+                    Point2D cursor = Point2D(typerX_TEMP, typerY_TEMP);
+                    cursor.setFill(commandColor);
+                    myConsole.addShape(&cursor);
+                }
+                Point2D cursor = Point2D(typerX, typerY);
+                cursor.setFill(commandColor);               
+                myConsole.addShape(&cursor);
                 typerX--;
                 if(typerX < 1)
                 {
@@ -429,12 +523,13 @@ int main()
                 myConsole.putString(username,userLine2.getAnchorX() + 1,userLine2.getAnchorY());
 
                 std::string path = sh.getCurrentDirectory().response;
+                myConsole.setTitle("Fancy Shell - By Benjamin Carter and Trevor Pope - " + path);
                 while(path.size() > width - 5)
                 {
                     path = path.substr(1);
                 }
                 myConsole.putString(path,pathLine.getAnchorX()+1, pathLine.getAnchorY());
-
+                
                 typerX = 1;
                 typerY = height - 4;
                 myConsole.putString("$ ",typerX, typerY);
@@ -449,6 +544,7 @@ int main()
             displayCommandResult(myConsole);
             displayUpdated = true;
         }       
+        
         
 
         if(displayUpdated && !keyboard.isAvailable())
@@ -465,7 +561,8 @@ int main()
     keyboard.stopListening();
     myConsole.clear();
     myConsole.setTitle("Ubuntu");
-    std::cout << "exit!\033[0m";
+    myConsole.render();
+    std::cout << "exit!\033[0m\033[?25h";
     system("clear");
 
     
