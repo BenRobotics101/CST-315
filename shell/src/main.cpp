@@ -437,7 +437,6 @@ int main()
 
                 // myConsole.putString(std::string(1,inc),typerX, typerY, commandColor);
                 displayUpdated = true;
-                timestamp = 0;
             }
             else if(inc == 127 && !textbox.empty()) // backspace
             {
