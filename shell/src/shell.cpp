@@ -6,20 +6,20 @@ Command parseCommand(const std::string& input)
 {
     Command cmd;
 
-    // std::istringstream iss(input);
-    cmd.command = input;
-    // iss >> cmd.command;
+    std::istringstream iss(input);
+    cmd.rawCommand = input;
+    iss >> cmd.command;
 
-    // std::string token;
-    // while (iss >> token) {
-    //     if (token[0] == '-') {
-    //         // Token is an option
-    //         cmd.options.push_back(token);
-    //     } else {
-    //         // Token is an argument
-    //         cmd.arguments.push_back(token);
-    //     }
-    // }
+    std::string token;
+    while (iss >> token) {
+        if (token[0] == '-') {
+            // Token is an option
+            cmd.options.push_back(token);
+        } else {
+            // Token is an argument
+            cmd.arguments.push_back(token);
+        }
+    }
 
     return cmd;
 }
@@ -77,8 +77,7 @@ CommandRespoonse Shell::df(const Command& cmd)
 
 CommandRespoonse Shell::generic(const Command& cmd) 
 {
-    std::string command = "";
-    command = Shell::buildCommand(cmd);
+    std::string command = cmd.rawCommand;
     CommandRespoonse cr = Shell::executeCommand(command);
     if(cr.response.find("not found") < cr.response.size() && cr.response.find("not found") > 0 && cr.response.find("not found") > cr.response.size() - 11)
     {
@@ -126,12 +125,12 @@ CommandRespoonse Shell::getCurrentDirectory()
 std::string Shell::buildCommand(const Command& cmd) 
 {
     std::string result = cmd.command;
-    // for (const auto& opt : cmd.options) {
-    //     result += " " + opt;
-    // }
-    // for (const auto& arg : cmd.arguments) {
-    //     result += " " + arg;
-    // }
+    for (const auto& opt : cmd.options) {
+        result += " " + opt;
+    }
+    for (const auto& arg : cmd.arguments) {
+        result += " " + arg;
+    }
     return result;
 }
 

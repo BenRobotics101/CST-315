@@ -318,6 +318,7 @@ int main(int argc, char** argv)
     std::string arguments = "load ";
       
     keyboard.startListening();
+    keyboard.clear();
     for(int i = 1; i < argc; i++)
     {
         char* arg = argv[i];
@@ -331,8 +332,6 @@ int main(int argc, char** argv)
             keyboard.simPress(x);
         }
         keyboard.simPress('\n');
-        
-        myConsole.setTitle(arguments);
     }
 
     Style cursorColor = Style();

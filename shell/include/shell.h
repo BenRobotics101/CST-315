@@ -30,6 +30,7 @@ struct Command
     std::string command;
     std::vector<std::string> options;
     std::vector<std::string> arguments;
+    std::string rawCommand;
 };
 
 struct CommandRespoonse
