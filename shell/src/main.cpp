@@ -60,6 +60,7 @@ void commandProcessor(Console* myConsole)
         else if(curCommand->command == "exit")
         {
             stopProgram = true;
+            curCommand->status = 0;
             curCommand->response = "Press any key to exit program!";
         }
         else
@@ -67,8 +68,6 @@ void commandProcessor(Console* myConsole)
             CommandRespoonse cr = sh.callCommand(curCommand->command);
             curCommand->response = cr.response;
             curCommand->status = cr.returnCode;
-            curCommand->isDisplay = false;
-            curCommand->isDone = true;
         }
 
         curCommand->isDisplay = false;
@@ -84,7 +83,6 @@ void displayCommandResult(Console &myConsole, int repeat=0)
     while(!displayQueue.empty())
     {
         CommandStatus* curCommand = displayQueue.front();
-        displayQueue.pop();
         Style commandBarColor = Style();
         if(curCommand->status == 0)
         {
@@ -103,7 +101,17 @@ void displayCommandResult(Console &myConsole, int repeat=0)
         }
         
         commandBarColor.turnOffBlink();
+
+        Style error = Style();
+        error.setBackgroundColor(255,200,60);
+        error.setTextColor(255,0,0);
         
+        if(currentRow > myConsole.getHeight() - 10)
+        {
+            clear(myConsole);
+            currentRow = 0;
+        }
+
         int lastRowPaint = -1;
         int offset = 0;
         for(int i = 0; i < curCommand->command.size(); i++)
@@ -112,7 +120,7 @@ void displayCommandResult(Console &myConsole, int repeat=0)
             int col = i % (myConsole.getWidth() - 3);
             char inc = curCommand->command.at(i);
             
-            if(row + 1 + currentRow > myConsole.getHeight() - 9)
+            if(row + 1 + currentRow > myConsole.getHeight() - 10)
             {
                 clear(myConsole);
                 currentRow = 0;
@@ -144,16 +152,28 @@ void displayCommandResult(Console &myConsole, int repeat=0)
                 textRow += 1;
                 continue;
             }
-            if(textRow > myConsole.getHeight() - 9)
+            if(inc == 9)
             {
-                clear(myConsole);
-                currentRow = 0;
-                if(repeat == 1)
+                inc = ' ';
+                for(int i = 0; i < 4; i++)
                 {
-                    curCommand->response = "too big!";
-                    return;
+                    myConsole.putString(std::string(1, inc),textCol + 1, textRow);
+                    textCol++;
+                    if(textCol > myConsole.getWidth() - 3)
+                    {
+                        textCol = 0;
+                        textRow++;
+                    }
                 }
-                return displayCommandResult(myConsole, 1);
+            }
+            if(textRow > myConsole.getHeight() - 10)
+            {
+                Line2D errorLine = Line2D(textCol + 1,textRow,textCol + 1 + 19, textRow);
+                errorLine.setFill(error);
+                myConsole.addShape(&errorLine);
+                myConsole.putString("<<< Output cut >>>>",textCol + 1, textRow);
+
+                break;
             }
             myConsole.putString(std::string(1, inc),textCol + 1, textRow);
             textCol++;
@@ -162,19 +182,18 @@ void displayCommandResult(Console &myConsole, int repeat=0)
                 textCol = 0;
                 textRow++;
             }
-            if(textRow > myConsole.getHeight() - 9)
+            if(textRow > myConsole.getHeight() - 10)
             {
-                clear(myConsole);
-                currentRow = 0;
-                if(repeat == 1)
-                {
-                    curCommand->response = "too big!";
-                    return;
-                }
-                return displayCommandResult(myConsole, 1);
+                Line2D errorLine = Line2D(textCol + 1,textRow,textCol + 1 + 19, textRow);
+                errorLine.setFill(error);
+                myConsole.addShape(&errorLine);
+                myConsole.putString("<<< Output cut >>>>",textCol + 1, textRow);
+
+                break;
             }
         }
         currentRow = textRow;
+        displayQueue.pop();
     }
 
 }
@@ -214,14 +233,14 @@ int main()
     myConsole.addShape(&commandBox);
     
     Style pathLineColor = Style();
-    pathLineColor.setBackgroundColor(60, 90, 60);
-    pathLineColor.setTextColor(255, 255, 200);
+    pathLineColor.setBackgroundColor(30, 54, 96);
+    pathLineColor.setTextColor(200, 200, 0);
     Line2D pathLine = Line2D(1,height - 5, width-2, height - 5);
     pathLine.setFill(pathLineColor);
     myConsole.addShape(&pathLine);
 
     Style userBoxColor = Style();
-    userBoxColor.setBackgroundColor(30, 40, 190);
+    userBoxColor.setBackgroundColor(146, 93, 22);
     userBoxColor.setTextColor(255, 255, 255);
     Line2D userLine = Line2D(1,0, 20, 0);
     userLine.setFill(userBoxColor);
@@ -231,10 +250,17 @@ int main()
     userLine2.setFill(userBoxColor);
     myConsole.addShape(&userLine2);
 
-    myConsole.putString(" username",userLine.getAnchorX(),userLine.getAnchorY());
-    myConsole.putString(" username",userLine2.getAnchorX(),userLine2.getAnchorY());
+    Shell sh = Shell();
+    std::string username = sh.whoami().response;
+    myConsole.putString(username,userLine.getAnchorX() + 1,userLine.getAnchorY());
+    myConsole.putString(username,userLine2.getAnchorX() + 1,userLine2.getAnchorY());
 
-    myConsole.putString(" your/current/path",pathLine.getAnchorX(), pathLine.getAnchorY());
+    std::string path = sh.getCurrentDirectory().response;
+    while(path.size() > width - 5)
+    {
+        path = path.substr(1);
+    }
+    myConsole.putString(path,pathLine.getAnchorX()+1, pathLine.getAnchorY());
 
     int typerX = 1;
     int typerY = height - 4;
@@ -295,6 +321,11 @@ int main()
                         continue;
                     }
                     history--;
+                }
+                else
+                {
+                    // left and right
+                    continue;
                 }
                 // clear!
                 myConsole.addShape(&commandBox);
@@ -391,6 +422,19 @@ int main()
 
                 processingThread = new std::thread(commandProcessor,&myConsole);
                 myConsole.addShape(&commandBox);
+
+                myConsole.addShape(&pathLine);
+                std::string username = sh.whoami().response;
+                myConsole.putString(username,userLine.getAnchorX() + 1,userLine.getAnchorY());
+                myConsole.putString(username,userLine2.getAnchorX() + 1,userLine2.getAnchorY());
+
+                std::string path = sh.getCurrentDirectory().response;
+                while(path.size() > width - 5)
+                {
+                    path = path.substr(1);
+                }
+                myConsole.putString(path,pathLine.getAnchorX()+1, pathLine.getAnchorY());
+
                 typerX = 1;
                 typerY = height - 4;
                 myConsole.putString("$ ",typerX, typerY);
@@ -420,6 +464,7 @@ int main()
 
     keyboard.stopListening();
     myConsole.clear();
+    myConsole.setTitle("Ubuntu");
     std::cout << "exit!\033[0m";
     system("clear");
 

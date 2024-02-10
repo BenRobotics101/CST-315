@@ -2,8 +2,6 @@
 
 #include "shell.h"
 
-
-
 Command parseCommand(const std::string& input) 
 {
     Command cmd;
@@ -80,7 +78,18 @@ CommandRespoonse Shell::generic(const Command& cmd)
 {
     std::string command = "";
     command = Shell::buildCommand(cmd);
-    return Shell::executeCommand(command);
+    CommandRespoonse cr = Shell::executeCommand(command);
+    if(cr.response.find("not found") < cr.response.size() && cr.response.find("not found") > 0 && cr.response.find("not found") > cr.response.size() - 11)
+    {
+        std::string old = cr.response;
+        cr.response = std::string("Command '") + command + "' could not be found. You can try the following commands: \n"
+        " ls\n"
+        " df\n"
+        " cd\n"
+        " whoami\n"
+        " pwd\n";
+    }
+    return cr;
 }
 
 CommandRespoonse Shell::changeDirectory(const Command& cmd) 
