@@ -1,4 +1,13 @@
-
+/**
+ * @file shell.cpp
+ * @author Benjamin Carter and Trevor Pope
+ * @brief This file contains the source for the shell class.
+ * @version 0.1
+ * @date 2024-02-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 
 #include "shell.h"
 
@@ -25,7 +34,7 @@ Command parseCommand(const std::string& input)
 }
 
 
-CommandRespoonse Shell::executeCommand(const std::string& command) 
+CommandResponse Shell::executeCommand(const std::string& command) 
 {
     // Use system() function to execute the command
     // return system(command.c_str());
@@ -45,21 +54,21 @@ CommandRespoonse Shell::executeCommand(const std::string& command)
     }
     int status = pclose(pipe)/256;
 
-    CommandRespoonse cr;
+    CommandResponse cr;
     cr.response = result;
     cr.returnCode = status;
     return cr;
 }
 
-CommandRespoonse Shell::whoami() 
+CommandResponse Shell::whoami() 
 {
     std::string command = "whoami";
-    CommandRespoonse result = Shell::executeCommand(command);
+    CommandResponse result = Shell::executeCommand(command);
     result.response.erase(std::remove(result.response.begin(), result.response.end(), '\n'), result.response.cend());
     return result;
 }
 
-CommandRespoonse Shell::listFiles(const Command& cmd)
+CommandResponse Shell::listFiles(const Command& cmd)
 {
     std::string command = "";
     command = Shell::buildCommand(cmd);
@@ -67,7 +76,7 @@ CommandRespoonse Shell::listFiles(const Command& cmd)
     return Shell::executeCommand(command);
 }
 
-CommandRespoonse Shell::df(const Command& cmd)
+CommandResponse Shell::df(const Command& cmd)
 {
     std::string command = "";
     command = Shell::buildCommand(cmd);
@@ -75,10 +84,10 @@ CommandRespoonse Shell::df(const Command& cmd)
     return Shell::executeCommand(command);
 }
 
-CommandRespoonse Shell::generic(const Command& cmd) 
+CommandResponse Shell::generic(const Command& cmd) 
 {
     std::string command = cmd.rawCommand;
-    CommandRespoonse cr = Shell::executeCommand(command);
+    CommandResponse cr = Shell::executeCommand(command);
     if(cr.response.find("not found") < cr.response.size() && cr.response.find("not found") > 0 && cr.response.find("not found") > cr.response.size() - 11)
     {
         std::string old = cr.response;
@@ -92,7 +101,7 @@ CommandRespoonse Shell::generic(const Command& cmd)
     return cr;
 }
 
-CommandRespoonse Shell::changeDirectory(const Command& cmd) 
+CommandResponse Shell::changeDirectory(const Command& cmd) 
 {
     std::string result = "";
     for (const auto& arg : cmd.arguments) {
@@ -103,19 +112,19 @@ CommandRespoonse Shell::changeDirectory(const Command& cmd)
     return Shell::getCurrentDirectory();
 }
 
-CommandRespoonse Shell::getCurrentDirectory() 
+CommandResponse Shell::getCurrentDirectory() 
 {
     char buffer[MAX_PATH_LENGTH];
     if (getcwd(buffer, sizeof(buffer)) != nullptr) 
     {
-        CommandRespoonse cr;
+        CommandResponse cr;
         cr.response = std::string(buffer);
         cr.returnCode = 0;
         return cr;
     } 
     else 
     {
-        CommandRespoonse cr;
+        CommandResponse cr;
         cr.response = "";
         cr.returnCode = -1;
         return cr;
@@ -134,10 +143,10 @@ std::string Shell::buildCommand(const Command& cmd)
     return result;
 }
 
-CommandRespoonse Shell::callCommand(const std::string& input) {
+CommandResponse Shell::callCommand(const std::string& input) {
     Command cmd = parseCommand(input);
 
-    CommandRespoonse output;
+    CommandResponse output;
     if (cmd.command == "ls") {
         output = Shell::listFiles(cmd);
     } else if (cmd.command == "cd") {

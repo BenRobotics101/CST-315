@@ -1,4 +1,15 @@
 
+/**
+ * @file fileLoader.cpp
+ * @author Benjamin Carter
+ * @brief This class opens a file and parses a shell script.
+ * @version 0.1
+ * @date 2024-02-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #include "fileLoader.h"
 
 FileLoader::FileLoader(const char* filename)

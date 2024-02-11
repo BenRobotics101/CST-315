@@ -104,7 +104,7 @@ void commandProcessor(Console* myConsole)
         }
         else
         {
-            CommandRespoonse cr = sh.callCommand(curCommand->command);
+            CommandResponse cr = sh.callCommand(curCommand->command);
             curCommand->response = cr.response;
             curCommand->status = cr.returnCode;
         }

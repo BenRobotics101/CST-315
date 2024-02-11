@@ -1,4 +1,13 @@
-
+/**
+ * @file shell.h
+ * @author Benjamin Carter and Trevor Pope
+ * @brief The header file for the shell class.
+ * @version 0.1
+ * @date 2024-02-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 
 #ifndef SHELL_CLASS_H
 #define SHELL_CLASS_H
@@ -33,7 +42,7 @@ struct Command
     std::string rawCommand;
 };
 
-struct CommandRespoonse
+struct CommandResponse
 {
     std::string response;
     int returnCode;
@@ -46,15 +55,75 @@ class Shell
 private:
     char buf[RESPONSE_BUFFER_LENGTH];
 public:
-    CommandRespoonse executeCommand(const std::string& command);
-    CommandRespoonse whoami();
-    CommandRespoonse df(const Command& cmd);
-    CommandRespoonse listFiles(const Command& cmd);
-    CommandRespoonse generic(const Command& cmd);
-    CommandRespoonse changeDirectory(const Command& cmd);
-    CommandRespoonse getCurrentDirectory();
+    /**
+     * @brief Execute the command
+     * 
+     * @param command 
+     * @return CommandResponse 
+     */
+    CommandResponse executeCommand(const std::string& command);
+
+    /**
+     * @brief Execute the whoami command
+     * 
+     * @return CommandResponse 
+     */
+    CommandResponse whoami();
+
+    /**
+     * @brief Execute the df command
+     * 
+     * @param cmd 
+     * @return CommandResponse 
+     */
+    CommandResponse df(const Command& cmd);
+
+    /**
+     * @brief Execute the list files command
+     * 
+     * @param cmd 
+     * @return CommandResponse 
+     */
+    CommandResponse listFiles(const Command& cmd);
+
+    /**
+     * @brief Execute a generic shell command
+     * 
+     * @param cmd 
+     * @return CommandResponse 
+     */
+    CommandResponse generic(const Command& cmd);
+
+    /**
+     * @brief Change directory (cd)
+     * 
+     * @param cmd 
+     * @return CommandResponse 
+     */
+    CommandResponse changeDirectory(const Command& cmd);
+
+    /**
+     * @brief Get the Current Directory (pwd)
+     * 
+     * @return CommandResponse 
+     */
+    CommandResponse getCurrentDirectory();
+
+    /**
+     * @brief Convert a command with arguments into a string
+     * 
+     * @param cmd 
+     * @return std::string 
+     */
     std::string buildCommand(const Command& cmd);
-    CommandRespoonse callCommand(const std::string& input);
+
+    /**
+     * @brief Receive the command, process it, and call the appropiate function.
+     * 
+     * @param input 
+     * @return CommandResponse 
+     */
+    CommandResponse callCommand(const std::string& input);
 
 };
 
