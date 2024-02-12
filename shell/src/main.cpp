@@ -583,7 +583,7 @@ int main(int argc, char** argv)
                         dump = "";
                         continue;
                     }
-                    if(dump == "" && i == ' ')
+                    if(dump == "" && command.at(i) == ' ')
                     {
                         continue;
                     }
