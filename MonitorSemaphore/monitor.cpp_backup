@@ -2,7 +2,6 @@
 #include <vector>
 #include <ctime>
 
-// change!
 
 int msleep(long msec)
 {
