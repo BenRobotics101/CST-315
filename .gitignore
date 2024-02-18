@@ -3,5 +3,6 @@
 FancyShell
 Assignment1/assignment1
 *.out
-
+monitor
+semaphore
 .vscode/

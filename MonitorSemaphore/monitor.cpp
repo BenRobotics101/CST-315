@@ -1,9 +1,25 @@
+/**
+ * @file monitor.cpp
+ * @author Benjamin Carter and Trevor Pope
+ * @brief Monitor Source file
+ * @version 0.1
+ * @date 2024-02-17
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
+
 #include <mutex>
 #include <vector>
 #include <ctime>
 
-// change!
-
+/**
+ * @brief Delay X milliseconds
+ * 
+ * @param msec milliseconds to delay
+ * @return int 
+ */
 int msleep(long msec)
 {
     struct timespec ts;
@@ -25,6 +41,10 @@ int msleep(long msec)
     return res;
 }
 
+/**
+ * @brief The Monitor Queue.
+ * 
+ */
 class MonitorQueue
 {
 private:
@@ -32,13 +52,15 @@ private:
     int buffer[SIZE];
     int start;
     int end;
-    int length = 0;
+    int length;
     std::mutex mainMutex;
 
 public:
     MonitorQueue()
     {
-
+        start = 0;
+        end = 0;
+        length = 0;
     }
     void put(int i)
     {
