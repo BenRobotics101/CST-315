@@ -1,3 +1,15 @@
+/**
+ * @file semaphore.c++
+ * @author Benjamin Carter and Trevor Pope
+ * @brief Monitor/Semaphore Assignment. This program uses semaphores to do a producer/consumer program. It produces
+ * random numbers placing them in a queue and consumes them and uses semaphores to have the producer or consumer
+ * wait until there is objects in the queue/wait until the queue is no longer full.
+ * @version 0.1
+ * @date 2024-02-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include <mutex>
 #include <vector>
 #include <ctime>
@@ -5,6 +17,10 @@
 #include <cstdlib>
 #include <semaphore.h>
 
+// Reference for semaphore implementation
+// http://www.csc.villanova.edu/~mdamian/threads/posixsem.html
+
+// Function to give a timing the program and cause it to wait.
 int msleep(long msec)
 {
     struct timespec ts;
@@ -26,7 +42,9 @@ int msleep(long msec)
     return res;
 }
 
-class MonitorQueue
+// Implementation of the Semaphores. Creates a queue and uses semaphores to allow access control for the queue
+// between the put and get functions.
+class SemaphoreQueue
 {
 private:
     #define SIZE  10
@@ -36,30 +54,40 @@ private:
     int length = 0;
     sem_t semEmpty;  // Semaphore to track empty slots in the buffer
     sem_t semFull;   // Semaphore to track filled slots in the buffer
+    std::mutex mutex; // Mutex for synchronizing access to the buffer
 
 public:
-    MonitorQueue()
+    SemaphoreQueue()
     {
         sem_init(&semEmpty, 0, SIZE);  // Initialize semEmpty to SIZE (maximum allowed empty slots)
         sem_init(&semFull, 0, 0);       // Initialize semFull to 0 (initially no filled slots)
+        start = 0;
+        end = 0;
     }
 
     void put(int i)
     {
         sem_wait(&semEmpty);  // Wait until there's space available in the buffer
+        mutex.lock();
         buffer[end] = i;
-        end = (end + 1) % SIZE;
-        length++;
+        end += 1;
+        end = end % SIZE;
+        length += 1;
         printf("Added %d to queue\n", i);
+        mutex.unlock();
         sem_post(&semFull);   // Signal that a slot has been filled
     }
 
     int get() 
     {
         sem_wait(&semFull);  // Wait until there's at least one item in the buffer
-        int i = buffer[start];
-        start = (start + 1) % SIZE;
-        length--;
+        int i;
+        mutex.lock();
+        i = buffer[start];
+        start += 1;
+        start = start % SIZE;
+        length -= 1;
+        mutex.unlock();
         sem_post(&semEmpty); // Signal that a slot has been emptied
         printf("Consuming %d from queue\n", i);
         return i;
@@ -90,21 +118,21 @@ int main()
     unsigned int current_time = time(NULL);
     srand(current_time);
 
-    MonitorQueue mq = MonitorQueue();
+    SemaphoreQueue sq = SemaphoreQueue();
     while(true)
     {
         if(randomIF(0.5))
         {
             // PRODUCER
             int number = rand() % 100;
-            mq.put(rand() % 100);
+            sq.put(rand() % 100);
         }
         else
         {
             // CONSUMER
-            if(mq.getLength() > 0)
+            if(sq.getLength() > 0)
             {
-                int i = mq.get();
+                int i = sq.get();
             }
             else
             {

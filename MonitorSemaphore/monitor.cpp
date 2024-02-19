@@ -1,6 +1,8 @@
 #include <mutex>
 #include <vector>
 #include <ctime>
+#include <errno.h>
+#include <iostream>
 
 // change!
 
@@ -38,7 +40,8 @@ private:
 public:
     MonitorQueue()
     {
-
+        start = 0;
+        end = 0;
     }
     void put(int i)
     {
@@ -59,6 +62,7 @@ public:
 
     int get() 
     {
+        printf("Running get\n");
         std::unique_lock<std::mutex> lock(mainMutex);
 
         if (length != 0) {
@@ -97,6 +101,13 @@ bool randomIF(float percent)
     double randomVal = (double)std::rand() / (double)RAND_MAX;
     return randomVal <= percent; 
 }
+
+// int main()
+// {
+//     MonitorQueue mq = MonitorQueue();
+//     mq.put(10);
+//     std::cout << mq.get() << "\n";
+// }
 
 int main()
 {
