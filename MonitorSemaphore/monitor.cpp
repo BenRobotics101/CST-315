@@ -1,7 +1,7 @@
 /**
  * @file monitor.cpp
  * @author Benjamin Carter and Trevor Pope
- * @brief Monitor Source file
+ * @brief Monitor Assignment. A monitor holds a queue that is shared between a producer and consumer.
  * @version 0.1
  * @date 2024-02-17
  * 
@@ -13,6 +13,8 @@
 #include <mutex>
 #include <vector>
 #include <ctime>
+#include <errno.h>
+#include <iostream>
 
 /**
  * @brief Delay X milliseconds
@@ -81,6 +83,7 @@ public:
 
     int get() 
     {
+        printf("Running get\n");
         std::unique_lock<std::mutex> lock(mainMutex);
 
         if (length != 0) {
@@ -119,6 +122,13 @@ bool randomIF(float percent)
     double randomVal = (double)std::rand() / (double)RAND_MAX;
     return randomVal <= percent; 
 }
+
+// int main()
+// {
+//     MonitorQueue mq = MonitorQueue();
+//     mq.put(10);
+//     std::cout << mq.get() << "\n";
+// }
 
 int main()
 {
