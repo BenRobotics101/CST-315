@@ -20,6 +20,8 @@ FancyShell implements the following commands:
 - load*
 - exit*
 - clear*
+- mkdir
+- rm
 
 Astrick denotes custom commands!
 
