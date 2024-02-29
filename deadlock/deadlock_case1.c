@@ -4,6 +4,15 @@
 
 // CASE 1
 
+#include <pthread.h>
+#include <stdio.h>
+#include <time.h> 
+#include <unistd.h>
+
+
+pthread_mutex_t lock1;
+pthread_mutex_t lock2;
+
 void *resource1()
 {
 

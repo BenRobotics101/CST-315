@@ -11,10 +11,12 @@
 #include <stdio.h> 
 #include <pthread.h> 
 #include <stdlib.h>
+#include <unistd.h>
+
 pthread_mutex_t read_mutex;
 pthread_mutex_t write_mutex;
 
-void * write(void *temp) 
+void * pgm_write(void *temp) 
 {
   char *ret;
   FILE *file1;
@@ -35,7 +37,7 @@ void * write(void *temp)
 }
 
 
-void * read(void *temp) 
+void * pgm_read(void *temp) 
 {
   char *ret;
   FILE *file1;
@@ -56,14 +58,14 @@ void * read(void *temp)
   return ret;
 }
 
-main() 
+int main() 
 {
   pthread_t thread_id,thread_id1;
   pthread_attr_t attr;
   int ret;
   void *res;
-  ret=pthread_create(&thread_id,NULL,&write,NULL);
-  ret=pthread_create(&thread_id1,NULL,&read,NULL);
+  ret=pthread_create(&thread_id,NULL,&pgm_write,NULL);
+  ret=pthread_create(&thread_id1,NULL,&pgm_read,NULL);
   printf("\n Created thread");
   pthread_join(thread_id,&res);
   pthread_join(thread_id1,&res);
