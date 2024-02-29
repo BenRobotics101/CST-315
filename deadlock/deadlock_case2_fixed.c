@@ -12,49 +12,41 @@
 #include <pthread.h> 
 #include <stdlib.h>
 #include <unistd.h>
+pthread_mutex_t file_mutex;
 
-pthread_mutex_t read_mutex;
-pthread_mutex_t write_mutex;
-
-void * pgm_write(void *temp) 
+void * write_func(void *temp) 
 {
   char *ret;
   FILE *file1;
   char *str;
-  pthread_mutex_lock(&write_mutex);
-  sleep(5);
-  pthread_mutex_lock(&read_mutex);
-  printf("\nFile locked, please enter the message \n");
+  pthread_mutex_lock(&file_mutex);
+  printf("\nFile locked, please enter the message \n\n");
   str=(char *)malloc(10*sizeof(char));
-  file1=fopen("temp","w");
+  file1=fopen("temp.txt","w");
   scanf("%s",str);
   fprintf(file1,"%s",str);
   fclose(file1);
-  pthread_mutex_unlock(&read_mutex);
-  pthread_mutex_unlock(&write_mutex);
+  pthread_mutex_unlock(&file_mutex);
   printf("\nUnlocked the file you can read it now \n");
   return ret;
 }
 
 
-void * pgm_read(void *temp) 
+void * read_func(void *temp) 
 {
   char *ret;
   FILE *file1;
   char *str;
-  pthread_mutex_lock(&read_mutex);
-  sleep(5);
-  pthread_mutex_lock(&write_mutex);
-  printf("\n Opening file \n");
-  file1=fopen("temp","r");
+  pthread_mutex_lock(&file_mutex);
+  printf("\nOpening file \n");
+  file1=fopen("temp.txt","r");
   str=(char *)malloc(10*sizeof(char));
   fscanf(file1,"%s",str);
-  printf("\n Message from file is %s \n",str);
+  printf("\nMessage from file is %s \n",str);
 
   fclose(file1);
 
-  pthread_mutex_unlock(&write_mutex);
-  pthread_mutex_unlock(&read_mutex);
+  pthread_mutex_unlock(&file_mutex);
   return ret;
 }
 
@@ -64,10 +56,11 @@ int main()
   pthread_attr_t attr;
   int ret;
   void *res;
-  ret=pthread_create(&thread_id,NULL,&pgm_write,NULL);
-  ret=pthread_create(&thread_id1,NULL,&pgm_read,NULL);
-  printf("\n Created thread");
+  ret=pthread_create(&thread_id,NULL,&write_func,NULL);
+  ret=pthread_create(&thread_id1,NULL,&read_func,NULL);
+  printf("\nCreated thread \n");
   pthread_join(thread_id,&res);
   pthread_join(thread_id1,&res);
+  return 0;
 }
     
