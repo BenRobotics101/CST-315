@@ -1,3 +1,13 @@
+/**
+ * @file deadlock_case1.c
+ * @author Benjamin Carter and Trevor Pope
+ * @brief This program does have a deadlock.
+ * @version 0.1
+ * @date 2024-02-29
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 // Inducing a deadlock. Using two resources. They have their own mutex locks, 
 // one process locks resource1 and trying to get resource2, at the same time other locks resource2 
 // and trying to get resource1, so both are in deadlock.
@@ -13,6 +23,11 @@
 pthread_mutex_t lock1;
 pthread_mutex_t lock2;
 
+/**
+ * @brief Thread 1
+ * 
+ * @return void* 
+ */
 void *resource1()
 {
 
@@ -21,7 +36,7 @@ void *resource1()
   printf("Job started in resource1..\n");
   sleep(2);
 
-  printf("Trying to get resourc2\n");
+  printf("Trying to get resoure2\n");
   pthread_mutex_lock(&lock2); 
   printf("Aquired resourc2\n");
   pthread_mutex_unlock(&lock2);
@@ -33,6 +48,11 @@ void *resource1()
   pthread_exit(NULL);
 }
 
+/**
+ * @brief Thread 2
+ * 
+ * @return void* 
+ */
 void *resource2()
 {
   pthread_mutex_lock(&lock2);
