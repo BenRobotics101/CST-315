@@ -6,7 +6,6 @@ using namespace std;
 #define LOGICAL_MEMORY_LENGTH 4
 #define PAGE_TABLE_LENGTH 4
 #define PHYSICAL_MEMORY_LENGTH 8
-#define NUM_OF_PAGES 4
 #define PAGE_LENGTH 4
 
 struct Page
@@ -31,30 +30,29 @@ struct PageTableEntry
     }
 };
 
-void readFromFile(char words[NUM_OF_PAGES][PAGE_LENGTH])
+void readFromFile(char words[LOGICAL_MEMORY_LENGTH][PAGE_LENGTH])
 {
     ifstream input("logMem.txt");
 
     char inputChar;
     //char words[NUM_OF_PAGES][PAGE_LENGTH];
 
-    int i = 0;
-    int j = 0;
-    while (!input.eof() && j < NUM_OF_PAGES)
+    int i = 0; // COLUMN.
+    int j = 0; // ROW
+    while (!input.eof() && j < LOGICAL_MEMORY_LENGTH)
     {
         inputChar = input.get();
         if(inputChar == 10)
         {
             j++;
-            i=0;
+            i = 0;
             continue; // skip the '\n'
         }
-        words[i][j] = inputChar;
+        words[j][i] = inputChar;
         i++;
         if(i == PAGE_LENGTH)
         {
-            i = i % PAGE_LENGTH;
-            j++; 
+            i = 0;
         }
     }
     input.close();
@@ -67,12 +65,26 @@ int main()
     Page physicalMemory[PHYSICAL_MEMORY_LENGTH]; // This is the physical memory space. It has a length of 8 pages.
 
     // I'm confused at this for loop. Shouldn't the logical memory be filled with pages of chars not integers?
-    for(int i = 0; i < LOGICAL_MEMORY_LENGTH; i++) // fill the logical memory with data. This is the difference between C and C++. (because 4 bytes is technically an "int")
+    // for(int i = 0; i < LOGICAL_MEMORY_LENGTH; i++) // fill the logical memory with data. This is the difference between C and C++. (because 4 bytes is technically an "int")
+    // {
+    //     logicalMemory[i].byte1 = i % 26 + 65;   // we are just putting in random data right now. We don't really care what the numbers are.
+    //     logicalMemory[i].byte2 = (i * 2) % 26 + 65;   // because later we will be reading from a file real data.
+    //     logicalMemory[i].byte3 = (i * 3) % 26 + 65;   
+    //     logicalMemory[i].byte4 = (i * 4) % 26 + 65;
+    // }
+
+    // read from prayer.
+    char inputWords[LOGICAL_MEMORY_LENGTH][PAGE_LENGTH];
+
+    readFromFile(inputWords);
+
+    for(int i = 0; i < LOGICAL_MEMORY_LENGTH; i++)
     {
-        logicalMemory[i].byte1 = i % 26 + 65;   // we are just putting in random data right now. We don't really care what the numbers are.
-        logicalMemory[i].byte2 = (i * 2) % 26 + 65;   // because later we will be reading from a file real data.
-        logicalMemory[i].byte3 = (i * 3) % 26 + 65;   
-        logicalMemory[i].byte4 = (i * 4) % 26 + 65;
+        char* letters = inputWords[i];
+        logicalMemory[i].byte1 = letters[0];
+        logicalMemory[i].byte2 = letters[1];
+        logicalMemory[i].byte3 = letters[2];
+        logicalMemory[i].byte4 = letters[3];
     }
 
     // what is going on here: create a "table" (really an array) where each item is two pointers. One to the logical memory and one to the physical memory.
@@ -143,14 +155,23 @@ int main()
     cout << "===================\n"
          << "PHYSICAL" << "\n";
 
+    ofstream output("outfile.txt");
+    output << "PHYSICAL" << "\n";
+
     for (int i = 0; i < PHYSICAL_MEMORY_LENGTH; i++)
     {
-        cout << "i: " << i << " | " 
-             << hex << physicalMemory[i].byte1 
-             << hex << physicalMemory[i].byte2
-             << hex << physicalMemory[i].byte3 
-             << hex << physicalMemory[i].byte4 
-             << "\n";
+        cout << "i: " << i << " | " << (char)(physicalMemory[i].byte1 == 0 ? '-' : physicalMemory[i].byte1);
+        cout << (char)(physicalMemory[i].byte2 == 0 ? '-' : physicalMemory[i].byte2);
+        cout << (char)(physicalMemory[i].byte3 == 0 ? '-' : physicalMemory[i].byte3);
+        cout << (char)(physicalMemory[i].byte4 == 0 ? '-' : physicalMemory[i].byte4);
+        cout << "\n";
+
+        output << "i: " << i << " | " << (char)(physicalMemory[i].byte1 == 0 ? '-' : physicalMemory[i].byte1);
+        output << (char)(physicalMemory[i].byte2 == 0 ? '-' : physicalMemory[i].byte2);
+        output << (char)(physicalMemory[i].byte3 == 0 ? '-' : physicalMemory[i].byte3);
+        output << (char)(physicalMemory[i].byte4 == 0 ? '-' : physicalMemory[i].byte4);
+        output << "\n";
     }
     cout << "===================" << "\n";
+    output.close();
 }
