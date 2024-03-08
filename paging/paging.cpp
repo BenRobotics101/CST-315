@@ -14,6 +14,11 @@ struct Page
     unsigned char byte2 = 0; // 'A'
     unsigned char byte3 = 0; // 'N'
     unsigned char byte4 = 0; // 'K'  Storing "TANK" for instance.
+
+    unsigned char byte1a = 0; // 'T' // so this is the "page". It has four letters, or four characters. 
+    unsigned char byte2a = 0; // 'A'
+    unsigned char byte3a = 0; // 'N'
+    unsigned char byte4a = 0; // 'K'  Storing "TANK" for instance.
 };
 
 struct PageTableEntry
@@ -64,16 +69,7 @@ int main()
     PageTableEntry pageTable[PAGE_TABLE_LENGTH]; // This is the page table. It has the same length as the number of pages in logical memory.     
     Page physicalMemory[PHYSICAL_MEMORY_LENGTH]; // This is the physical memory space. It has a length of 8 pages.
 
-    // I'm confused at this for loop. Shouldn't the logical memory be filled with pages of chars not integers?
-    // for(int i = 0; i < LOGICAL_MEMORY_LENGTH; i++) // fill the logical memory with data. This is the difference between C and C++. (because 4 bytes is technically an "int")
-    // {
-    //     logicalMemory[i].byte1 = i % 26 + 65;   // we are just putting in random data right now. We don't really care what the numbers are.
-    //     logicalMemory[i].byte2 = (i * 2) % 26 + 65;   // because later we will be reading from a file real data.
-    //     logicalMemory[i].byte3 = (i * 3) % 26 + 65;   
-    //     logicalMemory[i].byte4 = (i * 4) % 26 + 65;
-    // }
 
-    // read from prayer.
     char inputWords[LOGICAL_MEMORY_LENGTH][PAGE_LENGTH];
 
     readFromFile(inputWords);
@@ -87,10 +83,6 @@ int main()
         logicalMemory[i].byte4 = letters[3];
     }
 
-    // what is going on here: create a "table" (really an array) where each item is two pointers. One to the logical memory and one to the physical memory.
-    // so, what is the best way to create this "Page Table"?
-
-
     // logical memory has 4 elements.
     // physical memory has 8 elements.
     // mapping:
@@ -100,7 +92,6 @@ int main()
     //       0              6
     //       3              1
 
-    // Do we need an empty constructor for Page
     pageTable[0] = PageTableEntry(&logicalMemory[0], &physicalMemory[3]);
     pageTable[1] = PageTableEntry(&logicalMemory[1], &physicalMemory[0]);
     pageTable[2] = PageTableEntry(&logicalMemory[2], &physicalMemory[6]);
@@ -135,6 +126,11 @@ int main()
     cout << "===================\n"
          << "PAGE TABLE" << "\n";
 
+
+    cout << logicalMemory << endl;
+    cout << pageTable[2].logicalAddress << endl;
+    cout << pageTable[2].logicalAddress - logicalMemory << endl;
+
     for (int i = 0; i < PAGE_TABLE_LENGTH; i++)
     {
         // logical index. 
@@ -143,8 +139,8 @@ int main()
         Page* physical = pageTable[i].physicalAddress;
 
         cout << "i: " << i << " | " 
-             << "Logical: " << (logical - logicalMemory) % sizeof(*logical) << " | "
-             << "Physical: " << (physical - physicalMemory) % sizeof(*logical)
+             << "Logical: " << (logical - logicalMemory) % sizeof(logical) << " | "
+             << "Physical: " << (physical - physicalMemory) % sizeof(physical)       
              << "\n";
     }
 
