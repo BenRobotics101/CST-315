@@ -130,11 +130,6 @@ int main()
     cout << "===================\n"
          << "PAGE TABLE" << "\n";
 
-
-    cout << logicalMemory << endl;
-    cout << pageTable[2].logicalAddress << endl;
-    cout << pageTable[2].logicalAddress - logicalMemory << endl;
-
     for (int i = 0; i < PAGE_TABLE_LENGTH; i++)
     {
         // logical index. 
