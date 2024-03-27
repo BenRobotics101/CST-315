@@ -1,7 +1,7 @@
 
 #include <chrono>
 
-unsigned long getCurrentTime();
+uint64_t getCurrentTime();
 
 class Process
 {
@@ -10,12 +10,27 @@ private:
     unsigned int processID;
     unsigned int scheduleState;
     int priority;
-    uint64_t timeSubmitted;
-    uint64_t timeRemaining;
-    uint64_t timeRequired;
+    int64_t timeSubmitted;
+    int64_t timeRemaining;
+    int64_t timeRequired;
+    uint64_t lastExc;
+    float ioRate;
+    bool done;
 
 public:
-    Process(uint64_t timeReq);
+    Process(int64_t timeReq);
+
+    void changeState(unsigned int state);
+    unsigned int getState();
+    unsigned int getID();
+    unsigned int getPriority();
+    void setPriority(int p);
+
+    int64_t startExecution();
+    int8_t stopExecution();
+
+    bool isDone();
+
 
 };
 
