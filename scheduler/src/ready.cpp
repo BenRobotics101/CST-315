@@ -7,7 +7,7 @@ class Ready {
     private:
         std::queue<Process> processQueue;
         std::list<Process> sortingList;
-        bool sort_by_remaining_time(const Process &a, const Process &b) { return a.timeRemaining < b.timeRemaining; }
+        bool sort_by_remaining_time(const Process &a, const Process &b) { return a.getTimeRemaining() < b.getTimeRemaining(); }
     public:
         void pushToQueue(Process p) {
             processQueue.push(p);
@@ -15,7 +15,9 @@ class Ready {
             std::sort(sortingList.begin(), sortingList.end(), sort_by_remaining_time);
         } 
         Process popFromQueue() {
-            return sortingList.pop_back();
+            Process p = sortingList.end();
+            sortingList.pop_back();
+            return p;
         }
 
 };
