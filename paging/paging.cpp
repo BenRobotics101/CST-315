@@ -1,4 +1,13 @@
-
+/**
+ * @file paging.cpp
+ * @author Benjamin Carter and Trevor Pope
+ * @brief Simulate a Page Table with logical and physical memory.
+ * @version 0.1
+ * @date 2024-03-09
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include <iostream>
 #include <fstream>
 using namespace std;
@@ -14,11 +23,6 @@ struct Page
     unsigned char byte2 = 0; // 'A'
     unsigned char byte3 = 0; // 'N'
     unsigned char byte4 = 0; // 'K'  Storing "TANK" for instance.
-
-    unsigned char byte1a = 0; // 'T' // so this is the "page". It has four letters, or four characters. 
-    unsigned char byte2a = 0; // 'A'
-    unsigned char byte3a = 0; // 'N'
-    unsigned char byte4a = 0; // 'K'  Storing "TANK" for instance.
 };
 
 struct PageTableEntry
@@ -125,11 +129,6 @@ int main()
 
     cout << "===================\n"
          << "PAGE TABLE" << "\n";
-
-
-    cout << logicalMemory << endl;
-    cout << pageTable[2].logicalAddress << endl;
-    cout << pageTable[2].logicalAddress - logicalMemory << endl;
 
     for (int i = 0; i < PAGE_TABLE_LENGTH; i++)
     {
