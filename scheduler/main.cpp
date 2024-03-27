@@ -24,6 +24,8 @@ int main()
     rq.submit(p3);
     rq.submit(p4);
 
+    startIOThread();
+
     while(processesDone < 4)
     {
         Process p = rq.pull();
