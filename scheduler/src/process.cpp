@@ -1,27 +1,23 @@
 
-#include <ctime>
+#include <chrono>
+#include <process.h>
 
-class Process
+unsigned long getCurrentTime()
 {
-private:
-    static unsigned int processCount;
-    unsigned int processID;
-    unsigned int scheduleState;
-    int priority;
-    unsigned long timeSubmitted;
-    unsigned long timeRemaining;
-    unsigned long timeRequired;
-
-public:
-    Process(unsigned long timeReq)
-    {
-        processID = processCount;
-        scheduleState = 1; // READY.
-        timeRequired = timeReq; 
-        timeRemaining = timeReq;
-        timeSubmitted = 
-    }
-
-};
+    using namespace std::chrono;
+    const auto p1 = system_clock::now();
+    uint64_t out = duration_cast<milliseconds>(p1.time_since_epoch()).count();
+    return out;
+}
 
 unsigned int Process::processCount = 1;
+
+Process::Process(uint64_t timeReq)
+{
+    processID = processCount;
+    scheduleState = 1; // READY.
+    timeRequired = timeReq; 
+    timeRemaining = timeReq;
+    timeSubmitted = getCurrentTime();
+}
+
