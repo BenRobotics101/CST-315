@@ -1,4 +1,5 @@
-
+#ifndef PROCESS_H
+#define PROCESS_H
 #include <chrono>
 
 uint64_t getCurrentTime();
@@ -34,3 +35,5 @@ public:
 
 };
 
+
+#endif /* PROCESS_H */
